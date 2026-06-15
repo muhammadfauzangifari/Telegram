@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Style - Chat</title>
+    <style>
+        /* Reset Dasar */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            display: flex;
+            height: 100vh;
+            background-color: #e7ebf0;
+            overflow: hidden;
+        }
+
+        /* --- SIKLUS KOLOM KIRI (DAFTAR CHAT) --- */
+        .sidebar {
+            width: 350px;
+            background: #ffffff;
+            border-right: 1px solid #e4e4e4;
+            display: flex;
+            flex-direction: column;
+            z-index: 2;
+        }
+
+        /* Header Sidebar */
+        .sidebar-header {
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .search-bar {
+            flex: 1;
+            padding: 8px 12px;
+            background-color: #f1f1f1;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .search-bar:focus {
+            background-color: #ffffff;
+            border-color: #2481cc;
+        }
+
+        /* Daftar Kontak/Chat */
+        .chat-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .chat-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            gap: 12px;
+        }
+
+        .chat-item:hover {
+            background-color: #f4f4f5;
+        }
+
+        .chat-item.active {
+            background-color: #419fd9;
+            color: #ffffff;
+        }
+
+        /* Avatar Khas Telegram (Warna-warni Inisial) */
+        .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 16px;
+            color: #ffffff;
+            flex-shrink: 0;
+        }
+
+        /* Variasi warna avatar berdasarkan kontak */
+        .avatar.sovy { background-color: #4cb4e7; }
+        .avatar.haris { background-color: #4cd964; }
+        .avatar.rimba { background-color: #ff9500; }
+
+        .chat-info {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .chat-name-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .chat-name {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .chat-time {
+            font-size: 12px;
+            color: #aaaaaa;
+        }
+
+        .chat-item.active .chat-time,
+        .chat-item.active .chat-preview {
+            color: #e2f3ff;
+        }
+
+        .chat-preview {
+            font-size: 14px;
+            color: #707579;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+
+        /* --- SIKLUS KOLOM KANAN (AREA UTAMA CHAT) --- */
+        .main-chat {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: url('background.JPG') no-repeat center center/cover;
+            position: relative;
+        }
+
+        /* Overlay transparan tipis agar bubble chat kontras */
+        .main-chat::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1); 
+            z-index: 0;
+        }
+
+        /* Header Chat Atas */
+        .chat-header {
+            background: #ffffff;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid #e4e4e4;
+            z-index: 1;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .chat-header-info h4 {
+            font-size: 16px;
+            color: #333333;
+        }
+
+        .chat-header-info p {
+            font-size: 13px;
+            color: #2481cc;
+        }
+
+        /* Area Isi Pesan */
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 1;
+        }
+
+        /* Gelembung Pesan (Bubble Chat) */
+        .message-bubble {
+            max-width: 60%;
+            padding: 8px 14px;
+            border-radius: 12px;
+            font-size: 15px;
+            line-height: 1.4;
+            position: relative;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        /* Pesan dari kontak masuk (Kiri) */
+        .message-bubble.incoming {
+            background-color: #ffffff;
+            align-self: flex-start;
+            color: #333333;
+            border-top-left-radius: 4px;
+        }
+
+        /* Pesan kita yang terkirim (Kanan) */
+        .message-bubble.outgoing {
+            background-color: #eeffde;
+            align-self: flex-end;
+            color: #333333;
+            border-top-right-radius: 4px;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: #a0a0a0;
+            text-align: right;
+            margin-top: 4px;
+            display: block;
+        }
+
+        /* Area Input Ketik Pesan */
+        .chat-input-area {
+            background: #ffffff;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 1;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            outline: none;
+            font-size: 15px;
+            background-color: #f4f4f5;
+            border-radius: 8px;
+        }
+
+        .btn-send {
+            background: none;
+            border: none;
+            color: #2481cc;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 0 8px;
+        }
+
+        .btn-send:hover {
+            color: #1e71b3;
+        }
+
+        .btn-attach, .btn-mic {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.1s;
+        }
+
+        .btn-attach:hover, .btn-mic:hover {
+            transform: scale(1.1);
+        }
+
+        /* Efek visual saat mic sedang merekam */
+        .btn-mic.recording {
+            color: #e53935;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        /* Style khusus untuk gelembung pesan audio/file agar rapi */
+        .message-bubble audio {
+            max-width: 240px;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .file-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #2481cc;
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .file-link:hover {
+            text-decoration: underline;
+        }
+
+        .menu-toggle {
+            background: none;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            color: #707579;
+            padding: 4px 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+
+        .menu-toggle:hover {
+            background-color: #f4f4f5;
+            color: #2481cc;
+        }
+
+        /* Kontainer Utama Menu Geser */
+        .sidebar-drawer {
+            position: absolute;
+            top: 0;
+            left: -300px; /* Sembunyi di luar layar kiri secara default */
+            width: 280px;
+            height: 100%;
+            background: #ffffff;
+            box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            transition: left 0.3s ease-in-out; /* Animasi geser */
+        }
+
+        /* Ketika class 'open' ditambahkan lewat JS, menu akan bergeser masuk */
+        .sidebar-drawer.open {
+            left: 0;
+        }
+
+        /* Bagian Atas Menu (Profil Pengguna) */
+        .drawer-header {
+            background-color: #2481cc;
+            padding: 24px 16px;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #ffffff;
+            color: #2481cc;
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .user-info-detail h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .user-info-detail p {
+            font-size: 13px;
+            color: #e2f3ff;
+        }
+
+        /* Daftar Opsi Menu */
+        .drawer-menu-list {
+            flex: 1;
+            padding: 12px 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .drawer-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 20px;
+            color: #333333;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .drawer-menu-item:hover {
+            background-color: #f4f4f5;
+        }
+
+        .menu-icon {
+            font-size: 18px;
+        }
+
+        .logout-item {
+            color: #e53935;
+            border-top: 1px solid #f1f1f1;
+            margin-top: auto; /* Memaksa tombol logout berada di paling bawah menu */
+        }
+
+        .logout-item:hover {
+            background-color: #ffebee;
+        }
+
+        /* Overlay transparan di luar menu untuk mendeteksi klik tutup */
+        .drawer-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.4);
+            z-index: 9;
+            display: none;
+        }
+        .drawer-overlay.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar-drawer" id="sidebar-drawer">
+        <div class="drawer-header">
+            <div class="user-avatar" id="drawer-avatar">G</div>
+            <div class="user-info-detail">
+                <h3 id="drawer-username">Guest User</h3>
+                <p id="drawer-email">guest@gmail.com</p>
+            </div>
+        </div>
+        <div class="drawer-menu-list">
+            <a href="#" class="drawer-menu-item"><span class="menu-icon">👥</span> Grup Baru</a>
+            <a href="#" class="drawer-menu-item"><span class="menu-icon">👤</span> Kontak</a>
+            <a href="#" class="drawer-menu-item"><span class="menu-icon">📞</span> Panggilan</a>
+            <a href="#" class="drawer-menu-item"><span class="menu-icon">⚙️</span> Pengaturan</a>
+            <a href="#" class="drawer-menu-item logout-item" id="btn-logout"><span class="menu-icon">🚪</span> Log Out</a>
+        </div>
+    </div>
+
+    <div class="drawer-overlay" id="drawer-overlay"></div>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <button class="menu-toggle" id="menu-button">☰</button>
+            <input type="text" class="search-bar" placeholder="Cari...">
+        </div>
+
+        <div class="chat-list">
+            <div class="chat-item">
+                <div class="avatar sovy">S</div>
+                <div class="chat-info">
+                    <div class="chat-name-row">
+                        <span class="chat-name">Sovy</span>
+                        <span class="chat-time">10:42</span>
+                    </div>
+                    <div class="chat-preview">Halo! Lagi sibuk nggak?</div>
+                </div>
+            </div>
+
+            <div class="chat-item">
+                <div class="avatar haris">H</div>
+                <div class="chat-info">
+                    <div class="chat-name-row">
+                        <span class="chat-name">Haris</span>
+                        <span class="chat-time">Kemarin</span>
+                    </div>
+                    <div class="chat-preview">Kodenya sudah saya push ke GitHub ya</div>
+                </div>
+            </div>
+
+            <div class="chat-item">
+                <div class="avatar rimba">R</div>
+                <div class="chat-info">
+                    <div class="chat-name-row">
+                        <span class="chat-name">Rimba</span>
+                        <span class="chat-time">Senin</span>
+                    </div>
+                    <div class="chat-preview">Besok jadi ngopi kan?</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-chat">
+        <div class="chat-header">
+            <div class="avatar"></div>
+            <div class="chat-header-info">
+                <h4></h4>
+                <p></p>
+            </div>
+        </div>
+
+        <div class="chat-messages"></div>
+
+        <div class="chat-input-area">
+            <button class="btn-attach" onclick="document.getElementById('file-hidup').click()">📎</button>
+            <input type="file" id="file-hidup" style="display: none;">
+
+            <input type="text" class="message-input" placeholder="Tulis pesan...">
+
+            <button class="btn-mic" id="mic-button">🎙️</button>
+
+            <button class="btn-send">KIRIM</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script src="sidebar-drawer.js"></script>
+</body>
+</html>
