@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2481cc">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Telegram Style</title>
@@ -19,7 +21,7 @@
             align-items: center;
             min-height: 100vh;
             /* Menggunakan background.JPG sesuai permintaan */
-            background: url('background.JPG') no-repeat center center/cover;
+            background: url('background.jpg') no-repeat center center/cover;
             position: relative;
         }
 
@@ -167,5 +169,13 @@
             <a href="#">Lupa Kata Sandi?</a>
         </div>
     </div> <script src="script.js"></script>
+    <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')
+      .then(() => console.log('Service Worker Terdaftar!'))
+      .catch(err => console.log('Gagal Daftar Service Worker:', err));
+  }
+  
+</script>
 </body>
 </html>
